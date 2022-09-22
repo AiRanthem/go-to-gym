@@ -1,0 +1,10 @@
+version: "3.1"
+services:
+  go-to-gym:
+    restart: always
+    image: go-to-gym
+    ports:
+      - "8080:8080"
+    environment:
+      GYM_USERNAME: "#引号内替换为你的学号"
+      GYM_PASSWORD: "#引号内替换为你的密码"

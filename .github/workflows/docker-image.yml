@@ -14,14 +14,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup Go environment
-      uses: actions/setup-go@v3.3.0
-      with:
-        go-version: 1.19
-    - name: Go Build
-      run: mkdir app && cp -r static app/ && go build -o app/gym .
     - name: Build and push Docker images
       uses: docker/build-push-action@v3.1.1
       with:
         # List of tags
-        tags: latest
+        tags: AiRanthem/go-to-gym:latest

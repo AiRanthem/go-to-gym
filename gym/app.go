@@ -38,6 +38,7 @@ type Action struct {
 	Desc string
 }
 
+// Runner is used for logging job steps and avoid bugs with sleep
 type Runner struct {
 	Actions []Action
 	ctx     context.Context
@@ -45,7 +46,7 @@ type Runner struct {
 
 func (r *Runner) Run() error {
 	for _, action := range r.Actions {
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 		if err := chromedp.Run(r.ctx, action.A); err != nil {
 			log.WithField("desc", action.Desc).Error("action failed")
 			return err
@@ -75,40 +76,22 @@ func GoToGym(ctx context.Context, timeFunc TimeFunc) (string, error) {
 	}
 	log.Info("hacking...")
 	var buf []byte
-	//if err := NewRunner(ctx,
-	//	Action{chromedp.Navigate("https://ids.xmu.edu.cn/authserver/login?service=http://cgyy.xmu.edu.cn/idcallback"), "nav login page"},
-	//	Action{chromedp.WaitVisible(`//*[@id="casLoginForm"]/p[4]/button`), "wait login page"},
-	//	Action{chromedp.SendKeys(`//*[@id="username"]`, viper.GetString(ConfigKeyUsername)), "enter username"},
-	//	Action{chromedp.SendKeys(`//*[@id="password"]`, viper.GetString(ConfigKeyPassword)), "enter password"},
-	//	Action{chromedp.Click(`//*[@id="casLoginForm"]/p[4]/button`), "click login"},
-	//	Action{chromedp.WaitVisible(`//*[@id="navbar"]/div/div[1]/a[1]/img`), "wait login"},
-	//	Action{chromedp.Navigate("https://cgyy.xmu.edu.cn/my_reservations/slot"), "goto my_reservations page"},
-	//	Action{chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[3]/span`, map[string]string{"id": IdDate}), "set id date"},
-	//	Action{chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[4]`, map[string]string{"id": IdPeriod}), "set id period"},
-	//	Action{chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdDate, date), nil), "change date"},
-	//	Action{chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdPeriod, period), nil), "change period"},
-	//	Action{chromedp.Emulate(device.IPhone13ProMax), "emulate iphone13"},
-	//	Action{chromedp.FullScreenshot(&buf, 100), "screenshot"},
-	//).Run(); err != nil {
-	//	return "", err
-	//}
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://ids.xmu.edu.cn/authserver/login?service=http://cgyy.xmu.edu.cn/idcallback"),
-		chromedp.WaitVisible(`//*[@id="casLoginForm"]/p[4]/button`),
-		chromedp.SendKeys(`//*[@id="username"]`, viper.GetString(ConfigKeyUsername)),
-		chromedp.SendKeys(`//*[@id="password"]`, viper.GetString(ConfigKeyPassword)),
-		chromedp.Click(`//*[@id="casLoginForm"]/p[4]/button`),
-		chromedp.WaitVisible(`//*[@id="navbar"]/div/div[1]/a[1]/img`),
-		chromedp.Navigate("https://cgyy.xmu.edu.cn/my_reservations/slot"),
-		chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[3]/span`, map[string]string{"id": IdDate}),
-		chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[4]`, map[string]string{"id": IdPeriod}),
-		chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdDate, date), nil),
-		chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdPeriod, period), nil),
-		chromedp.SetAttributes(fmt.Sprintf(`//*[@id=%s]`, IdDate), map[string]string{"style": "font-size:12px;"}),
-		chromedp.SetAttributes(fmt.Sprintf(`//*[@id=%s]`, IdPeriod), map[string]string{"style": "font-size:12px;"}),
-		chromedp.Emulate(device.IPhone13ProMax),
-		chromedp.FullScreenshot(&buf, 100),
-	); err != nil {
+	if err := NewRunner(ctx,
+		Action{chromedp.Navigate("https://ids.xmu.edu.cn/authserver/login?service=http://cgyy.xmu.edu.cn/idcallback"), "nav login page"},
+		Action{chromedp.WaitVisible(`//*[@id="casLoginForm"]/p[4]/button`), "wait login page"},
+		Action{chromedp.SendKeys(`//*[@id="username"]`, viper.GetString(ConfigKeyUsername)), "enter username"},
+		Action{chromedp.SendKeys(`//*[@id="password"]`, viper.GetString(ConfigKeyPassword)), "enter password"},
+		Action{chromedp.Click(`//*[@id="casLoginForm"]/p[4]/button`), "click login"},
+		Action{chromedp.WaitVisible(`//*[@id="navbar"]/div/div[1]/a[1]/img`), "wait login"},
+		Action{chromedp.Navigate("https://cgyy.xmu.edu.cn/my_reservations/slot"), "goto my_reservations page"},
+		Action{chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[3]/span`, map[string]string{"id": IdDate}), "set id date"},
+		Action{chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody/tr[1]/td[4]`, map[string]string{"id": IdPeriod}), "set id period"},
+		Action{chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdDate, date), nil), "change date"},
+		Action{chromedp.Evaluate(fmt.Sprintf(`document.getElementById("%s").innerHTML="%s"`, IdPeriod, period), nil), "change period"},
+		Action{chromedp.SetAttributes(`//*[@id="block-system-main"]/div/div/div/table/tbody`, map[string]string{"style": "font-size:12px;"}), "change font"},
+		Action{chromedp.Emulate(device.IPhone13ProMax), "emulate iphone13"},
+		Action{chromedp.FullScreenshot(&buf, 100), "screenshot"},
+	).Run(); err != nil {
 		return "", err
 	}
 	log.Info("Wooooo! Page hacked! Saving...")
